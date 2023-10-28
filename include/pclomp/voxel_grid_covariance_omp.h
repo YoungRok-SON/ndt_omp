@@ -302,7 +302,7 @@ namespace pclomp
         }
       }
 
-      /** \brief Get the voxel containing point p.
+      /** \brief Get the voxel containing point p. // 이거 설명이 잘못된거 같은데 -> 인덱스에 해당하는 Leaf 객체 Ptr 반환하는거 아닌가
        * \param[in] index the index of the leaf structure node
        * \return const pointer to leaf structure
        */

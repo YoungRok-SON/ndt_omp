@@ -112,15 +112,15 @@ namespace pclomp
 		/** \brief Empty destructor */
 		virtual ~NormalDistributionsTransform() {}
 
-    void setNumThreads(int n) {
-      num_threads_ = n;
-    }
+		void setNumThreads(int n) 
+		{
+		num_threads_ = n;
+		}
 
 		/** \brief Provide a pointer to the input target (e.g., the point cloud that we want to align the input source to).
 		  * \param[in] cloud the input point cloud target
 		  */
-		inline void
-			setInputTarget(const PointCloudTargetConstPtr &cloud)
+		inline void setInputTarget(const PointCloudTargetConstPtr &cloud)
 		{
 			pcl::Registration<PointSource, PointTarget>::setInputTarget(cloud);
 			init();
@@ -129,8 +129,7 @@ namespace pclomp
 		/** \brief Set/change the voxel grid resolution.
 		  * \param[in] resolution side length of voxels
 		  */
-		inline void
-			setResolution(float resolution)
+		inline void setResolution(float resolution)
 		{
 			// Prevents unnecessary voxel initiations
 			if (resolution_ != resolution)
@@ -193,8 +192,7 @@ namespace pclomp
 		/** \brief Get the registration alignment probability.
 		  * \return transformation probability
 		  */
-		inline double
-			getTransformationProbability() const
+		inline double getTransformationProbability() const // 확률을 fitness_score인가
 		{
 			return (trans_probability_);
 		}
@@ -202,8 +200,7 @@ namespace pclomp
 		/** \brief Get the number of iterations required to calculate alignment.
 		  * \return final number of iterations
 		  */
-		inline int
-			getFinalNumIteration() const
+		inline int getFinalNumIteration() const
 		{
 			return (nr_iterations_);
 		}
@@ -212,8 +209,7 @@ namespace pclomp
 		  * \param[in] x transformation vector of the form [x, y, z, roll, pitch, yaw]
 		  * \param[out] trans affine transform corresponding to given transformation vector
 		  */
-		static void
-			convertTransform(const Eigen::Matrix<double, 6, 1> &x, Eigen::Affine3f &trans)
+		static void convertTransform(const Eigen::Matrix<double, 6, 1> &x, Eigen::Affine3f &trans)
 		{
 			trans = Eigen::Translation<float, 3>(float(x(0)), float(x(1)), float(x(2))) *
 				Eigen::AngleAxis<float>(float(x(3)), Eigen::Vector3f::UnitX()) *
@@ -225,8 +221,7 @@ namespace pclomp
 		  * \param[in] x transformation vector of the form [x, y, z, roll, pitch, yaw]
 		  * \param[out] trans 4x4 transformation matrix corresponding to given transformation vector
 		  */
-		static void
-			convertTransform(const Eigen::Matrix<double, 6, 1> &x, Eigen::Matrix4f &trans)
+		static void convertTransform(const Eigen::Matrix<double, 6, 1> &x, Eigen::Matrix4f &trans)
 		{
 			Eigen::Affine3f _affine;
 			convertTransform(x, _affine);
@@ -256,11 +251,10 @@ namespace pclomp
 
 		using pcl::Registration<PointSource, PointTarget>::update_visualizer_;
 
-		/** \brief Estimate the transformation and returns the transformed source (input) as output.
+		/** \brief Estimate the transformation and returns the transformed+ source (input) as output.
 		  * \param[out] output the resultant input transformed point cloud dataset
 		  */
-		virtual void
-			computeTransformation(PointCloudSource &output)
+		virtual void computeTransformation(PointCloudSource &output)
 		{
 			computeTransformation(output, Eigen::Matrix4f::Identity());
 		}
@@ -269,12 +263,10 @@ namespace pclomp
 		  * \param[out] output the resultant input transformed point cloud dataset
 		  * \param[in] guess the initial gross estimation of the transformation
 		  */
-		virtual void
-			computeTransformation(PointCloudSource &output, const Eigen::Matrix4f &guess);
+		virtual void computeTransformation(PointCloudSource &output, const Eigen::Matrix4f &guess);
 
 		/** \brief Initiate covariance voxel structure. */
-		void inline
-			init()
+		void inline init()
 		{
 			target_cells_.setLeafSize(resolution_, resolution_, resolution_);
 			target_cells_.setInputCloud(target_);
@@ -290,12 +282,11 @@ namespace pclomp
 		  * \param[in] p the current transform vector
 		  * \param[in] compute_hessian flag to calculate hessian, unnecessary for step calculation.
 		  */
-		double
-			computeDerivatives(Eigen::Matrix<double, 6, 1> &score_gradient,
-				Eigen::Matrix<double, 6, 6> &hessian,
-				PointCloudSource &trans_cloud,
-				Eigen::Matrix<double, 6, 1> &p,
-				bool compute_hessian = true);
+		double computeDerivatives( Eigen::Matrix<double, 6, 1> &score_gradient,
+				                   Eigen::Matrix<double, 6, 6> &hessian,
+				                   PointCloudSource &trans_cloud,
+				                   Eigen::Matrix<double, 6, 1> &p,
+				                   bool compute_hessian = true );
 
 		/** \brief Compute individual point contributions to derivatives of probability function w.r.t. the transformation vector.
 		  * \note Equation 6.10, 6.12 and 6.13 [Magnusson 2009].
@@ -305,13 +296,12 @@ namespace pclomp
 		  * \param[in] c_inv covariance of occupied covariance voxel
 		  * \param[in] compute_hessian flag to calculate hessian, unnecessary for step calculation.
 		  */
-		double
-			updateDerivatives(Eigen::Matrix<double, 6, 1> &score_gradient,
-				Eigen::Matrix<double, 6, 6> &hessian,
-				const Eigen::Matrix<float, 4, 6> &point_gradient_,
-				const Eigen::Matrix<float, 24, 6> &point_hessian_,
-				const Eigen::Vector3d &x_trans, const Eigen::Matrix3d &c_inv,
-				bool compute_hessian = true) const;
+		double updateDerivatives( Eigen::Matrix<double, 6, 1> &score_gradient,
+								  Eigen::Matrix<double, 6, 6> &hessian,
+								  const Eigen::Matrix<float, 4, 6> &point_gradient_,
+								  const Eigen::Matrix<float, 24, 6> &point_hessian_,
+								  const Eigen::Vector3d &x_trans, const Eigen::Matrix3d &c_inv,
+								  bool compute_hessian = true) const;
 
 		/** \brief Precompute angular components of derivatives.
 		  * \note Equation 6.19 and 6.21 [Magnusson 2009].

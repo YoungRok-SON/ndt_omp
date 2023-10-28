@@ -128,18 +128,31 @@ pclomp::NormalDistributionsTransform<PointSource, PointTarget>::computeTransform
     // Negative for maximization as opposed to minimization
     delta_p = sv.solve (-score_gradient);
 
-    //Calculate step length with guaranteed sufficient decrease [More, Thuente 1994]
+    // Calculate step length with guaranteed sufficient decrease [More, Thuente 1994]
     delta_p_norm = delta_p.norm ();
 
-    if (delta_p_norm == 0 || delta_p_norm != delta_p_norm)
+    if (delta_p_norm == 0 || delta_p_norm != delta_p_norm) // In case of NaN.
     {
       trans_probability_ = score / static_cast<double> (input_->points.size ());
-      converged_ = delta_p_norm == delta_p_norm;
+      converged_ = delta_p_norm == delta_p_norm;  // In case of NaN, it will return false.
       return;
     }
 
     delta_p.normalize ();
     delta_p_norm = computeStepLengthMT (p, delta_p, delta_p_norm, step_size_, transformation_epsilon_ / 2, score, score_gradient, hessian, output);
+    /* 
+      computeStepLengthMT 함수는 주어진 정보를 바탕으로 알고리즘이 다음 단계로 얼마나 이동해야 하는지 결정하는 데 사용되는 단계 길이를 계산하여 반환합니다.
+
+      p: 현재 변환 벡터입니다.
+      delta_p: 변환 벡터의 변화량 또는 단계 방향입니다.
+      delta_p_norm: delta_p의 노름(norm)입니다.
+      step_size_: 단계 길이의 초기 추정치 또는 이전 단계에서의 길이일 수 있습니다.
+      transformation_epsilon_ / 2: 변환의 최소 허용 변화량입니다. 이 값 아래로 떨어지면 알고리즘이 수렴했다고 판단될 수 있습니다.
+      score: 현재 변환 벡터에 대한 점수 또는 비용 함수 값입니다.
+      score_gradient: 점수에 대한 변환 벡터의 기울기입니다.
+      hessian: 점수에 대한 변환 벡터의 헤시안 행렬입니다.
+      output: 변환된 포인트 클라우드입니다. 
+    */
     delta_p *= delta_p_norm;
 
 
@@ -177,11 +190,11 @@ int omp_get_thread_num() { return 0; }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 template<typename PointSource, typename PointTarget> double
-pclomp::NormalDistributionsTransform<PointSource, PointTarget>::computeDerivatives(Eigen::Matrix<double, 6, 1> &score_gradient,
-	Eigen::Matrix<double, 6, 6> &hessian,
-	PointCloudSource &trans_cloud,
-	Eigen::Matrix<double, 6, 1> &p,
-	bool compute_hessian)
+pclomp::NormalDistributionsTransform<PointSource, PointTarget>::computeDerivatives( Eigen::Matrix<double, 6, 1> &score_gradient,
+	                                                                                  Eigen::Matrix<double, 6, 6> &hessian,
+	                                                                                  PointCloudSource &trans_cloud,
+	                                                                                  Eigen::Matrix<double, 6, 1> &p,
+	                                                                                  bool compute_hessian)
 {
 	score_gradient.setZero();
 	hessian.setZero();
@@ -190,7 +203,8 @@ pclomp::NormalDistributionsTransform<PointSource, PointTarget>::computeDerivativ
   std::vector<double> scores(input_->points.size());
   std::vector<Eigen::Matrix<double, 6, 1>, Eigen::aligned_allocator<Eigen::Matrix<double, 6, 1>>> score_gradients(input_->points.size());
   std::vector<Eigen::Matrix<double, 6, 6>, Eigen::aligned_allocator<Eigen::Matrix<double, 6, 6>>> hessians(input_->points.size());
-  for (std::size_t i = 0; i < input_->points.size(); i++) {
+  for (std::size_t i = 0; i < input_->points.size(); i++) 
+  {
 		scores[i] = 0;
 		score_gradients[i].setZero();
 		hessians[i].setZero();
@@ -230,7 +244,8 @@ pclomp::NormalDistributionsTransform<PointSource, PointTarget>::computeDerivativ
 		auto& distances = distancess[thread_n];
 
 		// Find neighbors (Radius search has been experimentally faster than direct neighbor checking.
-		switch (search_method) {
+		switch (search_method) 
+    {
 		case KDTREE:
 			target_cells_.radiusSearch(x_trans_pt, resolution_, neighborhood, distances);
 			break;
